@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LAND LEOPARD 全链路运营决策系统</title>
+    <style>
+        :root {
+            --primary-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --card-bg: #273548;
+            --accent-blue: #3b82f6;
+            --amz-orange: #ff9900;
+            --text-main: #f8fafc;
+            --text-dark: #1e293b;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --warning-red: #ef4444;
+            --success-green: #10b981;
+            --caution-yellow: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--primary-dark); color: var(--text-main); padding-bottom: 50px; }
+
+        /* 顶部导航 */
+        .nav-header {
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-title { font-weight: 700; font-size: 1.2rem; letter-spacing: 1px; white-space: nowrap; }
+        
+        .nav-links { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+        }
+        
+        .nav-link { 
+            color: var(--text-muted); 
+            text-decoration: none; 
+            font-weight: 500; 
+            cursor: pointer;
+            padding: 8px 14px;
+            transition: all 0.2s;
+            border-radius: 4px;
+            user-select: none;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+        .nav-link:hover { background: var(--border-color); color: var(--text-main); }
+        .nav-link.active { background: var(--accent-blue); color: white; }
+        .nav-link.active-amz { background: var(--amz-orange); color: var(--primary-dark); font-weight: 700; }
+        .nav-link-external { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border-color); }
+
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        
+        /* 视图控制 */
+        .view-content { display: none; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 布局栅格 */
+        .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+        .grid-reg { display: grid; grid-template-columns: 250px 1fr; gap: 25px; }
+
+        /* 卡片基础 */
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 25px; overflow-x: auto; }
+        .card-light { background: #ffffff; color: var(--text-dark); }
+        .card-title { font-size: 1.1rem; font-weight: 600; color: var(--text-main); border-left: 4px solid var(--accent-blue); padding-left: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .card-title-amz { color: var(--text-dark); border-left-color: var(--amz-orange); }
+        .card-subtitle { font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin: 15px 0 10px 0; padding-bottom: 5px; border-bottom: 1px solid var(--border-color); }
+
+        /* 表单输入区 */
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
+        input, select { 
+            background: var(--panel-bg); 
+            color: var(--text-main); 
+            padding: 10px 12px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            font-size: 16px; /* 防止 iOS 自动放大 */
+            transition: border-color 0.2s; 
+            height: 44px; /* 触控最佳高度 */
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent-blue); }
+
+        /* 按钮样式 */
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; height: 44px; font-size: 1rem; }
+        .btn-primary { background: var(--accent-blue); color: white; width: 100%; margin-top: 15px; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger-outline { background: rgba(239, 68, 68, 0.1); color: var(--warning-red); border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.8rem; padding: 4px 8px; height: auto; }
+        .btn-text { background: none; border: none; color: var(--warning-red); cursor: pointer; font-size: 0.85rem; padding: 4px; height: auto; }
+
+        /* 数据展示面板 */
+        .result-panel { position: sticky; top: 90px; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .res-box { background: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .res-box.primary { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); }
+        .res-label { font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px; }
+        .res-val { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+        
+        .alert-box { padding: 12px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; margin-top: 15px; display: none; }
+        .alert-red { background: rgba(239, 68, 68, 0.1); color: var(--warning-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .alert-green { background: rgba(16, 185, 129, 0.1); color: var(--success-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        /* 表格样式 */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; min-width: 600px; }
+        .data-table th { background: var(--panel-bg); text-align: left; padding: 12px; border: 1px solid var(--border-color); color: var(--text-main); font-weight: 600; white-space: nowrap; }
+        .data-table td { padding: 12px; border: 1px solid var(--border-color); vertical-align: middle; color: var(--text-muted); }
+        .data-table a { color: var(--accent-blue); text-decoration: none; word-break: break-all; }
+        
+        .val-danger { color: var(--warning-red) !important; }
+        .val-success { color: var(--success-green) !important; }
+
+        /* 注册向导专属样式 */
+        .reg-menu { list-style: none; }
+        .reg-menu li { padding: 12px 15px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; color: var(--text-muted); font-weight: 500; transition: 0.2s; border: 1px solid transparent; }
+        .reg-menu li.active { background: #fff7ed; color: #c2410c; border-color: var(--amz-orange); font-weight: 600; }
+        .reg-step-content { display: none; animation: fadeIn 0.3s; }
+        .reg-step-content.active { display: block; }
+        .progress-container { background: #e2e8f0; border-radius: 10px; height: 12px; width: 100%; margin: 15px 0; overflow: hidden; }
+        .progress-bar { background: var(--amz-orange); height: 100%; width: 0%; transition: width 0.4s ease; }
+        .checklist-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 15px; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; transition: 0.2s; }
+        .checklist-item input[type="checkbox"] { margin-top: 4px; width: 22px; height: 22px; accent-color: var(--amz-orange); flex-shrink: 0; }
+        .checklist-item label { color: var(--text-dark); font-size: 0.95rem; font-weight: 500; width: 100%; }
+        .checklist-item p.desc { color: #64748b; font-size: 0.85rem; margin-top: 4px; font-weight: normal; }
+        
+        .alert-block { border-left: 4px solid var(--warning-red); background: #fef2f2; padding: 15px; margin-bottom: 20px; border-radius: 0 6px 6px 0; }
+        .alert-block h4 { color: var(--warning-red); margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+        .alert-block p { color: #7f1d1d; font-size: 0.85rem; line-height: 1.5; }
+
+        /* ========================================== */
+        /* 移动端深度优化适配 (Mobile View) */
+        /* ========================================== */
+        @media (max-width: 800px) {
+            .nav-header { 
+                flex-direction: column; 
+                align-items: stretch; 
+                padding: 12px;
+                gap: 12px;
+            }
+            .nav-links { 
+                flex-wrap: nowrap; 
+                overflow-x: auto; 
+                padding-bottom: 5px; 
+                -webkit-overflow-scrolling: touch; 
+            }
+            .nav-links::-webkit-scrollbar { display: none; } /* 隐藏滚动条 */
+            
+            .container { padding: 0 10px; margin: 15px auto; }
+            .card { padding: 15px; }
+            
+            /* 取消分列，全部单列 */
+            .grid-2, .grid-reg { grid-template-columns: 1fr; gap: 15px; }
+            .input-grid { grid-template-columns: 1fr; }
+            
+            /* 测算长宽高的连体输入框优化 */
+            #c_l, #c_w, #c_h { width: 100% !important; }
+            
+            /* 结果面板在手机端取消 fixed 定位 */
+            .result-panel { position: relative; top: 0; }
+
+            /* 注册导航在手机端变横向滑动菜单 */
+            .reg-menu { 
+                display: flex; 
+                overflow-x: auto; 
+                gap: 10px; 
+                padding-bottom: 5px; 
+                -webkit-overflow-scrolling: touch;
+            }
+            .reg-menu::-webkit-scrollbar { display: none; }
+            .reg-menu li { margin-bottom: 0; white-space: nowrap; }
+            
+            .card-title { font-size: 1rem; flex-direction: column; align-items: flex-start; gap: 10px; }
+            .card-title .btn { width: 100%; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="nav-header">
+    <div class="header-title">LAND LEOPARD <span style="color: var(--accent-blue)">DECISION SYSTEM</span></div>
+    <nav class="nav-links">
+        <div class="nav-link active" onclick="switchView('calc', this, 'standard')">单品全链路利润测算</div>
+        <div class="nav-link" onclick="switchView('restock', this, 'standard')">FBA 智能补货计划</div>
+        <div class="nav-link" onclick="switchView('sop', this, 'standard')">尺寸与物流 SOP</div>
+        <div class="nav-link" onclick="switchView('reg', this, 'amz')">北美站注册与审查</div>
+        <div class="nav-link" onclick="switchView('manual', this, 'standard')">运营资源手册</div>
+        <a href="https://alidocs.dingtalk.com/i/nodes/ydxXB52LJqAKvOZaHM47jopaJqjMp697" target="_blank" class="nav-link nav-link-external">
+            开店注册流程 ↗
+        </a>
+    </nav>
+</header>
+
+<div class="container">
+    
+    <section id="view-calc" class="view-content" style="display: block;">
+        <div class="grid-2">
+            <div>
+                <div class="card">
+                    <div class="card-title">测算参数输入面板</div>
+                    <div class="card-subtitle" style="margin-top: 0;">一、基础与采购成本 (CNY/USD)</div>
+                    <div class="input-grid">
+                        <div class="input-group"><label>产品型号</label><input type="text" id="c_model" value="Eagle Pro 2.0"></div>
+                        <div class="input-group"><label>目标售价 (USD)</label><input type="number" id="c_price" value="299.99" step="0.01" oninput="runCalc()"></div>
+                        <div class="input-group"><label>采购单价 (CNY)</label><input type="number" id="c_cost" value="450" step="1" oninput="runCalc()"></div>
+                        <div class="input-group"><label>包装费 (CNY)</label><input type="number" id="c_pack" value="15" step="1" oninput="runCalc()"></div>
+                        <div class="input-group"><label>国内运费 (CNY)</label><input type="number" id="c_dom" value="5" step="1" oninput="runCalc()"></div>
+                        <div class="input-group"><label>汇率 (USD/CNY)</label><input type="number" id="c_rate" value="7.23" step="0.01" oninput="runCalc()"></div>
+                    </div>
+                    <div class="card-subtitle">二、大件物流与关税 (CM/KG)</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label>长x宽x高 (cm)</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="number" id="c_l" value="80" style="width: 33%" placeholder="长" oninput="runCalc()">
+                                <input type="number" id="c_w" value="50" style="width: 33%" placeholder="宽" oninput="runCalc()">
+                                <input type="number" id="c_h" value="30" style="width: 33%" placeholder="高" oninput="runCalc()">
+                            </div>
+                        </div>
+                        <div class="input-group"><label>抛重系数</label>
+                            <select id="c_vol_factor" oninput="runCalc()">
+                                <option value="6000">6000 (空派)</option>
+                                <option value="5000">5000 (部分高配)</option>
+                                <option value="7000">7000 (海卡优惠)</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>毛重 (kg)</label><input type="number" id="c_weight" value="9.5" step="0.1" oninput="runCalc()"></div>
+                        <div class="input-group"><label>头程单价 (USD/kg)</label><input type="number" id="c_freight" value="1.2" step="0.1" oninput="runCalc()"></div>
+                        <div class="input-group"><label>关税税率</label><input type="number" id="c_tax" value="0.05" step="0.01" oninput="runCalc()"></div>
+                    </div>
+                    <div class="card-subtitle">三、平台硬性费率 (USD)</div>
+                    <div class="input-grid">
+                        <div class="input-group"><label>佣金比例</label><input type="number" id="c_ref" value="0.15" step="0.01" oninput="runCalc()"></div>
+                        <div class="input-group"><label>FBA配送费</label><input type="number" id="c_fba" value="28.5" step="0.1" oninput="runCalc()"></div>
+                        <div class="input-group"><label>合仓费</label><input type="number" id="c_place" value="4.5" step="0.1" oninput="runCalc()"></div>
+                        <div class="input-group"><label>月仓储费</label><input type="number" id="c_storage" value="1.8" step="0.1" oninput="runCalc()"></div>
+                    </div>
+                    <div class="card-subtitle">四、动态风控与营销费率</div>
+                    <div class="input-grid">
+                        <div class="input-group"><label>退货率</label><input type="number" id="c_ret_rate" value="0.08" step="0.01" oninput="runCalc()"></div>
+                        <div class="input-group"><label>不可售折损率</label><input type="number" id="c_ret_loss" value="0.4" step="0.01" oninput="runCalc()"></div>
+                        <div class="input-group"><label>退货处理费</label><input type="number" id="c_ret_fee" value="3.0" step="0.1" oninput="runCalc()"></div>
+                        <div class="input-group"><label>TACOS</label><input type="number" id="c_tacos" value="0.12" step="0.01" oninput="runCalc()"></div>
+                        <div class="input-group"><label>收款费率</label><input type="number" id="c_collect" value="0.005" step="0.001" oninput="runCalc()"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="result-panel">
+                <div class="card">
+                    <div class="card-title">测算结果看板</div>
+                    <div class="result-grid">
+                        <div class="res-box"><span class="res-label">计费重 (kg)</span><span class="res-val" id="r_charge_w">0.00</span></div>
+                        <div class="res-box primary"><span class="res-label">到仓成本 (USD)</span><span class="res-val" id="r_landed">0.00</span></div>
+                        <div class="res-box"><span class="res-label">平台扣费 (USD)</span><span class="res-val" id="r_fixed">0.00</span></div>
+                        <div class="res-box"><span class="res-label">风控营销 (USD)</span><span class="res-val" id="r_variable">0.00</span></div>
+                    </div>
+                    <div class="res-box" style="margin-bottom: 15px;"><span class="res-label">盈亏平衡价 (USD)</span><span class="res-val" id="r_breakeven">0.00</span></div>
+                    <div class="result-grid" style="margin-bottom: 0;">
+                        <div class="res-box" style="background: rgba(16,185,129,0.05);"><span class="res-label">绝对净利</span><span class="res-val val-success" id="r_net">0.00</span></div>
+                        <div class="res-box" style="background: rgba(16,185,129,0.05);"><span class="res-label">净利润率</span><span class="res-val" id="r_margin">0.00%</span></div>
+                    </div>
+                    <div class="res-box" style="margin-top: 15px; background: rgba(16,185,129,0.05);"><span class="res-label">ROI</span><span class="res-val" id="r_roi">0.00%</span></div>
+                    <button class="btn btn-primary" onclick="saveCalcRecord()">保存测算记录</button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title"><span>历史记录 (最多10条)</span><button class="btn btn-danger-outline" onclick="clearCalcRecords()">一键清空</button></div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>时间</th><th>型号</th><th>售价</th><th>到仓成本</th><th>盈亏线</th><th>净利</th><th>利润率</th><th>ROI</th><th>操作</th></tr></thead>
+                    <tbody id="history-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-restock" class="view-content">
+        <div class="grid-2">
+            <div>
+                <div class="card">
+                    <div class="card-title">FBA 进销存参数建模</div>
+                    <div class="card-subtitle" style="margin-top:0;">输入基础变动数据</div>
+                    <div class="input-grid">
+                        <div class="input-group"><label>SKU / ASIN</label><input type="text" id="rs_sku" value="LL-Stroller-Black"></div>
+                        <div class="input-group"><label>每日销量 (Daily Sales)</label><input type="number" id="rs_daily" value="25" oninput="runRestock()"></div>
+                        <div class="input-group"><label>当前可用库存</label><input type="number" id="rs_stock" value="500" oninput="runRestock()"></div>
+                        <div class="input-group"><label>在途库存</label><input type="number" id="rs_transit" value="200" oninput="runRestock()"></div>
+                        <div class="input-group"><label>安全缓冲库存</label><input type="number" id="rs_safety" value="100" oninput="runRestock()"></div>
+                    </div>
+                    <div class="card-subtitle">物流策略与目标周期</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label>运输方式</label>
+                            <select id="rs_transport" onchange="updateLeadTime(); runRestock();">
+                                <option value="45">海运 (预计 45 天)</option>
+                                <option value="15">空运 (预计 15 天)</option>
+                                <option value="custom">自定义线路</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>交货周期 (天)</label><input type="number" id="rs_leadtime" value="45" oninput="checkCustomLeadTime(); runRestock();"></div>
+                        <div class="input-group"><label>目标备货天数</label><input type="number" id="rs_target" value="90" oninput="runRestock()"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-panel">
+                <div class="card">
+                    <div class="card-title">智能补货决策看板</div>
+                    <div class="result-grid">
+                        <div class="res-box"><span class="res-label">总可用库存</span><span class="res-val" id="r_total_stock">0</span></div>
+                        <div class="res-box"><span class="res-label">剩余可售天数</span><span class="res-val" id="r_days_left">0</span></div>
+                        <div class="res-box"><span class="res-label">补货预警线 (ROP)</span><span class="res-val" id="r_rop">0</span></div>
+                        <div class="res-box primary"><span class="res-label">建议采购数量</span><span class="res-val" id="r_order_qty" style="color:var(--accent-blue)">0</span></div>
+                    </div>
+                    <div class="res-box" style="margin-bottom: 15px;">
+                        <span class="res-label">预计到仓日期</span>
+                        <span class="res-val" id="r_arrival_date">-</span>
+                    </div>
+                    
+                    <div id="rs_alert" class="alert-box" style="display:block; text-align:center;"></div>
+                    <button class="btn btn-primary" onclick="addRestockPlan()">加入下方采购计划表</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 5px;">
+            <div class="card-title">
+                <span>采购计划总表</span>
+                <button class="btn btn-primary" style="width:auto; margin:0;" onclick="exportRestockCSV()">导出 CSV</button>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>日销</th>
+                            <th>总库存</th>
+                            <th>周期</th>
+                            <th>目标天数</th>
+                            <th>警戒线</th>
+                            <th>状态</th>
+                            <th>采购量</th>
+                            <th>预计到仓日</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="restock-tbody">
+                        <tr><td colspan="10" style="text-align:center; padding: 20px;">暂未添加补货计划</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-sop" class="view-content">
+        <div class="card">
+            <div class="card-title">体积与合规测算 (自动换算 cm/kg 至英寸/磅)</div>
+            <div class="input-grid">
+                <div class="input-group"><label>长度 L (cm)</label><input type="number" id="sop-l" placeholder="0" oninput="calculateSOP()"></div>
+                <div class="input-group"><label>宽度 W (cm)</label><input type="number" id="sop-w" placeholder="0" oninput="calculateSOP()"></div>
+                <div class="input-group"><label>高度 H (cm)</label><input type="number" id="sop-h" placeholder="0" oninput="calculateSOP()"></div>
+                <div class="input-group"><label>重量 Weight (kg)</label><input type="number" id="sop-weight" placeholder="0" oninput="calculateSOP()"></div>
+            </div>
+            <div class="result-grid" style="margin-top: 20px;">
+                <div class="res-box"><span class="res-label">亚马逊抛重标准 (lb)</span><span class="res-val" id="res-vol-weight">0.00</span></div>
+                <div class="res-box primary"><span class="res-label">最终计费重量 (lb)</span><span class="res-val" id="res-charge-weight">0.00</span></div>
+            </div>
+            <div id="sop-alert-size" style="display:none; color:var(--warning-red); margin-top:10px; font-weight:bold;"></div>
+            <div id="sop-alert-weight" style="display:none; color:var(--warning-red); margin-top:5px; font-weight:bold;"></div>
+        </div>
+    </section>
+
+    <section id="view-reg" class="view-content">
+        <div class="alert-block" style="background:#fff7ed; border-color:var(--amz-orange);">
+            <h4 style="color:#c2410c;">⚠️ 注册风险警示</h4>
+            <p style="color:#9a3412;">注册流程不可逆，材料造假或网络关联将导致永久封禁。请严格遵守以下 SOP。</p>
+        </div>
+        <div class="grid-reg">
+            <div class="card card-light" style="padding: 15px;">
+                <h3 style="font-size: 1rem; color: var(--text-dark); margin-bottom: 15px; padding-left: 10px; border-left: 3px solid var(--amz-orange);">流程导航</h3>
+                <ul class="reg-menu">
+                    <li class="active" onclick="switchRegStep('step1', this)">1. 基础材料排查</li>
+                    <li onclick="switchRegStep('step2', this)">2. 信息录入风控</li>
+                    <li onclick="switchRegStep('step3', this)">3. 面签与地址验证</li>
+                    <li onclick="switchRegStep('step4', this)">4. 推车CPC预审</li>
+                    <li onclick="switchRegStep('step5', this)">5. 二审申诉引擎</li>
+                </ul>
+                <div style="margin-top: 30px; text-align: center;">
+                    <span style="font-size: 0.85rem; color: #64748b;">材料完成度</span><h2 id="reg-progress-text" style="color: var(--amz-orange); font-size: 2rem;">0%</h2>
+                    <div class="progress-container"><div id="reg-progress-bar" class="progress-bar"></div></div>
+                </div>
+            </div>
+            <div class="card card-light">
+                <div id="reg-step1" class="reg-step-content active"><div class="card-title card-title-amz">1. 基础材料排查</div><div class="checklist-item"><input type="checkbox" onchange="calcRegProgress()" class="reg-chk"><label>营业执照审核 <p class="desc">未过期且大于 45 天。</p></label></div></div>
+                <div id="reg-step2" class="reg-step-content"><div class="card-title card-title-amz">2. 信息录入风控</div><div class="checklist-item"><input type="checkbox" onchange="calcRegProgress()" class="reg-chk"><label>OTP 验证码防范 <p class="desc">失败满 3 次锁定 1 小时。</p></label></div></div>
+                <div id="reg-step3" class="reg-step-content"><div class="card-title card-title-amz">3. 面签与地址验证</div><div class="checklist-item"><input type="checkbox" onchange="calcRegProgress()" class="reg-chk"><label>明信片 (OTP) <p class="desc">5-8 个工作日寄达。</p></label></div></div>
+                <div id="reg-step4" class="reg-step-content"><div class="card-title card-title-amz">4. 推车CPC预审</div><div class="checklist-item"><input type="checkbox" onchange="calcRegProgress()" class="reg-chk"><label>ASTM F833 <p class="desc">持有 CPSC 认可报告。</p></label></div></div>
+                <div id="reg-step5" class="reg-step-content"><div class="card-title card-title-amz">5. 二审申诉引擎</div><div class="checklist-item"><input type="checkbox" onchange="calcRegProgress()" class="reg-chk"><label>不可逆格式 <p class="desc">仅彩色扫描件，严禁截图。</p></label></div></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-manual" class="view-content">
+        <div class="card">
+            <div class="card-title">一、核心运营与投诉邮箱</div>
+            <div class="table-responsive">
+                <table class="data-table"><thead><tr><th width="30%">用途 / 接收对象</th><th>联系邮箱</th></tr></thead><tbody>
+                    <tr><td>Jeff (亚马逊高层团队)</td><td><a href="mailto:jeff@amazon.com">jeff@amazon.com</a></td></tr>
+                    <tr><td>Jeff 助理团队</td><td><a href="mailto:ecr-replies@amazon.com">ecr-replies@amazon.com</a></td></tr>
+                    <tr><td>评价举报 (Review Appeals)</td><td><a href="mailto:review-appeals@amazon.com">review-appeals@amazon.com</a><br><a href="mailto:listings-report-proactive@amazon.com">listings-report-proactive@amazon.com</a></td></tr>
+                    <tr><td>买家账号相关审查</td><td><a href="mailto:account-resolution@amazon.com">account-resolution@amazon.com</a><br><a href="mailto:address-verification@amazon.com">address-verification@amazon.com</a></td></tr>
+                    <tr><td>活动申请 (黑五/秒杀)</td><td><a href="mailto:fba-holiday-deals@amazon.com">fba-holiday-deals@amazon.com</a><br><a href="mailto:sellers-support-deals@amazon.com">sellers-support-deals@amazon.com</a></td></tr>
+                </tbody></table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">二、各站点绩效与资金申诉入口</div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr><th width="20%">对应站点</th><th width="40%">产品质量 (PQ) 申诉邮箱</th><th width="40%">资金申诉邮箱</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>🇺🇸 美国站 (US)</td><td><a href="mailto:seller-performance-policy@amazon.com">seller-performance-policy@amazon.com</a></td><td><a href="mailto:merchant-reserve-inquiry@amazon.com">merchant-reserve-inquiry@amazon.com</a></td></tr>
+                        <tr><td>🇬🇧 英国站 (UK)</td><td><a href="mailto:seller-performance-policy@amazon.co.uk">seller-performance-policy@amazon.co.uk</a></td><td><a href="mailto:payments-investigate@amazon.co.uk">payments-investigate@amazon.co.uk</a></td></tr>
+                        <tr><td>🇩🇪 德国站 (DE)</td><td><a href="mailto:verkaeufer-performance-richtlinie@amazon.de">verkaeufer-performance-richtlinie@amazon.de</a></td><td><a href="mailto:payments-nachforschungen@amazon.de">payments-nachforschungen@amazon.de</a></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">三、必备工具网站大全</div>
+            <div class="table-responsive">
+                <table class="data-table"><thead><tr><th width="30%">工具 / 平台名称</th><th>官方网址入口</th></tr></thead><tbody>
+                    <tr><td>亚马逊各类排行榜</td><td><a href="http://www.amazon.com/Best-Sellers/zgbs" target="_blank">http://www.amazon.com/Best-Sellers/zgbs</a></td></tr>
+                    <tr><td>亚马逊卖家官方论坛</td><td><a href="https://sellercentral.amazon.com/forums" target="_blank">https://sellercentral.amazon.com/forums</a></td></tr>
+                    <tr><td>Google Trends (趋势选品)</td><td><a href="https://www.google.com/trends/" target="_blank">https://www.google.com/trends/</a></td></tr>
+                </tbody></table>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    // ==========================================
+    // 模块 0：全局视图切换引擎 
+    // ==========================================
+    function switchView(viewName, clickedElement, theme) {
+        var activeTheme = theme || 'standard';
+        
+        var views = document.querySelectorAll('.view-content');
+        for (var i = 0; i < views.length; i++) {
+            views[i].style.display = 'none';
+        }
+        
+        var links = document.querySelectorAll('.nav-link');
+        for (var j = 0; j < links.length; j++) {
+            links[j].classList.remove('active');
+            links[j].classList.remove('active-amz');
+        }
+        
+        var targetView = document.getElementById('view-' + viewName);
+        if (targetView) {
+            targetView.style.display = 'block';
+        }
+        
+        if (clickedElement) {
+            if (activeTheme === 'amz') {
+                clickedElement.classList.add('active-amz');
+            } else {
+                clickedElement.classList.add('active');
+            }
+        }
+    }
+
+    // ==========================================
+    // 模块 1：单品利润动态测算核心逻辑
+    // ==========================================
+    function getVal(id) {
+        var element = document.getElementById(id);
+        return element ? (parseFloat(element.value) || 0) : 0;
+    }
+
+    function runCalc() {
+        var price = getVal('c_price');
+        var rate = getVal('c_rate');
+        if(rate === 0) return; 
+
+        var cost_usd = getVal('c_cost') / rate;
+        var pack_usd = getVal('c_pack') / rate;
+        var dom_usd = getVal('c_dom') / rate;
+        
+        var l = getVal('c_l'), w = getVal('c_w'), h = getVal('c_h'), weight = getVal('c_weight');
+        var vol_factor = getVal('c_vol_factor');
+        var vol_weight = (l * w * h) / (vol_factor > 0 ? vol_factor : 6000);
+        var charge_w = Math.max(weight, vol_weight);
+        var logistics_usd = getVal('c_freight') * charge_w;
+        var tax_usd = cost_usd * getVal('c_tax');
+        
+        var landed = cost_usd + pack_usd + dom_usd + logistics_usd + tax_usd;
+        var fixed = (price * getVal('c_ref')) + getVal('c_fba') + getVal('c_place') + getVal('c_storage');
+        
+        var ret_rate = getVal('c_ret_rate');
+        var variable = (price * getVal('c_tacos')) + 
+                       (price * ret_rate * getVal('c_ret_loss')) + 
+                       (ret_rate * getVal('c_ret_fee')) + 
+                       (price * getVal('c_collect'));
+
+        var be_den = 1 - getVal('c_ref') - getVal('c_tacos') - (ret_rate * getVal('c_ret_loss')) - getVal('c_collect');
+        var breakeven = be_den > 0 ? (landed + getVal('c_fba') + getVal('c_place') + getVal('c_storage') + (ret_rate * getVal('c_ret_fee'))) / be_den : 0;
+
+        var net = price - landed - fixed - variable;
+        var invest = landed + (price * getVal('c_tacos'));
+        var margin = price > 0 ? (net / price) * 100 : 0;
+        var roi = invest > 0 ? (net / invest) * 100 : 0;
+
+        document.getElementById('r_charge_w').innerText = charge_w.toFixed(2);
+        document.getElementById('r_landed').innerText = landed.toFixed(2);
+        document.getElementById('r_fixed').innerText = fixed.toFixed(2);
+        document.getElementById('r_variable').innerText = variable.toFixed(2);
+        document.getElementById('r_breakeven').innerText = breakeven.toFixed(2);
+        
+        var rNet = document.getElementById('r_net');
+        rNet.innerText = net.toFixed(2);
+        rNet.className = net < 0 ? 'res-val val-danger' : 'res-val val-success';
+        
+        document.getElementById('r_margin').innerText = margin.toFixed(2) + '%';
+        document.getElementById('r_roi').innerText = roi.toFixed(2) + '%';
+    }
+
+    // ==========================================
+    // 模块 1.1：利润历史记录管理
+    // ==========================================
+    var STORAGE_KEY = 'll_amazon_calc_history';
+
+    function getStorageRecords() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        } catch(e) {
+            return [];
+        }
+    }
+
+    function saveCalcRecord() {
+        var now = new Date();
+        var m = String(now.getMonth() + 1).padStart(2, '0');
+        var d = String(now.getDate()).padStart(2, '0');
+        var h = String(now.getHours()).padStart(2, '0');
+        var min = String(now.getMinutes()).padStart(2, '0');
+        var timeStr = m + '/' + d + ' ' + h + ':' + min;
+        
+        var modelEl = document.getElementById('c_model');
+        var record = { 
+            time: timeStr, 
+            model: modelEl ? modelEl.value.trim() : '未命名', 
+            price: document.getElementById('c_price').value, 
+            landed: document.getElementById('r_landed').innerText, 
+            breakeven: document.getElementById('r_breakeven').innerText, 
+            net: document.getElementById('r_net').innerText, 
+            margin: document.getElementById('r_margin').innerText, 
+            roi: document.getElementById('r_roi').innerText 
+        };
+        
+        var records = getStorageRecords();
+        records.unshift(record); 
+        if (records.length > 10) records = records.slice(0, 10);
+        
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        renderCalcRecords();
+    }
+
+    function renderCalcRecords() {
+        var records = getStorageRecords();
+        var tbody = document.getElementById('history-tbody');
+        if (!tbody) return;
+
+        if (records.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px;">暂无历史记录</td></tr>';
+            return;
+        }
+
+        var html = '';
+        for (var i = 0; i < records.length; i++) {
+            var r = records[i];
+            var netClass = parseFloat(r.net) < 0 ? 'val-danger' : 'val-success';
+            html += '<tr>' +
+                '<td>' + r.time + '</td>' +
+                '<td><b>' + r.model + '</b></td>' +
+                '<td>$' + r.price + '</td>' +
+                '<td>$' + r.landed + '</td>' +
+                '<td>$' + r.breakeven + '</td>' +
+                '<td class="' + netClass + '"><b>$' + r.net + '</b></td>' +
+                '<td>' + r.margin + '</td>' +
+                '<td>' + r.roi + '</td>' +
+                '<td><button class="btn-text" onclick="deleteCalcRecord(' + i + ')">删除</button></td>' +
+            '</tr>';
+        }
+        tbody.innerHTML = html;
+    }
+
+    function deleteCalcRecord(index) {
+        var records = getStorageRecords();
+        records.splice(index, 1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        renderCalcRecords();
+    }
+
+    function clearCalcRecords() {
+        if (confirm('确认要清空记录吗？')) {
+            localStorage.removeItem(STORAGE_KEY);
+            renderCalcRecords();
+        }
+    }
+
+    // ==========================================
+    // 模块 2：FBA 进销存补货计划核心算法
+    // ==========================================
+    var restockPlans = [];
+
+    function updateLeadTime() {
+        var transSelect = document.getElementById('rs_transport');
+        var leadInput = document.getElementById('rs_leadtime');
+        if (transSelect && leadInput) {
+            if (transSelect.value !== 'custom') {
+                leadInput.value = transSelect.value;
+            }
+        }
+    }
+    
+    function checkCustomLeadTime() {
+        var transSelect = document.getElementById('rs_transport');
+        if (transSelect) transSelect.value = 'custom';
+    }
+
+    function runRestock() {
+        var daily = parseFloat(document.getElementById('rs_daily').value) || 0;
+        var stock = parseFloat(document.getElementById('rs_stock').value) || 0;
+        var transit = parseFloat(document.getElementById('rs_transit').value) || 0;
+        var safety = parseFloat(document.getElementById('rs_safety').value) || 0;
+        var leadtime = parseFloat(document.getElementById('rs_leadtime').value) || 0;
+        var target = parseFloat(document.getElementById('rs_target').value) || 0;
+
+        var totalStock = stock + transit;
+        var rop = (daily * leadtime) + safety;
+        var daysLeft = daily > 0 ? (totalStock / daily).toFixed(1) : '∞';
+        var orderQty = Math.max(0, (target * daily) - totalStock);
+
+        document.getElementById('r_total_stock').innerText = totalStock;
+        document.getElementById('r_days_left').innerText = daysLeft;
+        document.getElementById('r_rop').innerText = rop;
+        document.getElementById('r_order_qty').innerText = orderQty;
+
+        var today = new Date();
+        today.setDate(today.getDate() + leadtime);
+        var y = today.getFullYear();
+        var m = String(today.getMonth() + 1).padStart(2, '0');
+        var d = String(today.getDate()).padStart(2, '0');
+        document.getElementById('r_arrival_date').innerText = y + '-' + m + '-' + d;
+
+        var alertBox = document.getElementById('rs_alert');
+        if (alertBox) {
+            if (totalStock <= rop) {
+                alertBox.className = 'alert-box alert-red';
+                alertBox.innerHTML = '⚠️ 需紧急补货 (总库存已低于或等于警戒线)';
+            } else {
+                alertBox.className = 'alert-box alert-green';
+                alertBox.innerHTML = '✅ 库存健康 (暂无断货风险)';
+            }
+        }
+    }
+
+    function addRestockPlan() {
+        var skuInput = document.getElementById('rs_sku');
+        var sku = skuInput ? skuInput.value.trim() : '未命名SKU';
+        var transportSelect = document.getElementById('rs_transport');
+        var transportName = transportSelect.options[transportSelect.selectedIndex].text.split(' ')[0];
+        
+        var totalStock = parseFloat(document.getElementById('r_total_stock').innerText);
+        var rop = parseFloat(document.getElementById('r_rop').innerText);
+        var isWarning = totalStock <= rop;
+        
+        var plan = {
+            sku: sku || '未命名',
+            daily: document.getElementById('rs_daily').value,
+            totalStock: totalStock,
+            leadtime: document.getElementById('rs_leadtime').value,
+            target: document.getElementById('rs_target').value,
+            rop: rop,
+            transport: transportName,
+            status: isWarning ? '需补货' : '健康',
+            isWarning: isWarning,
+            orderQty: document.getElementById('r_order_qty').innerText,
+            arrivalDate: document.getElementById('r_arrival_date').innerText
+        };
+
+        restockPlans.push(plan);
+        renderRestockTable();
+    }
+
+    function deleteRestockPlan(index) {
+        restockPlans.splice(index, 1);
+        renderRestockTable();
+    }
+
+    function renderRestockTable() {
+        var tbody = document.getElementById('restock-tbody');
+        if (!tbody) return;
+
+        if (restockPlans.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 20px;">暂未添加补货计划</td></tr>';
+            return;
+        }
+
+        var html = '';
+        for (var i = 0; i < restockPlans.length; i++) {
+            var p = restockPlans[i];
+            var statusStyle = p.isWarning ? 'class="val-danger" style="font-weight:bold;"' : 'class="val-success"';
+            html += '<tr>' +
+                '<td style="font-weight:bold; color:var(--text-dark);">' + p.sku + '</td>' +
+                '<td>' + p.daily + '</td>' +
+                '<td>' + p.totalStock + '</td>' +
+                '<td>' + p.transport + ' (' + p.leadtime + '天)</td>' +
+                '<td>' + p.target + '</td>' +
+                '<td>' + p.rop + '</td>' +
+                '<td ' + statusStyle + '>' + p.status + '</td>' +
+                '<td style="font-weight:bold; color:var(--accent-blue);">' + p.orderQty + '</td>' +
+                '<td>' + p.arrivalDate + '</td>' +
+                '<td><button class="btn-text" onclick="deleteRestockPlan(' + i + ')">移除</button></td>' +
+            '</tr>';
+        }
+        tbody.innerHTML = html;
+    }
+
+    function exportRestockCSV() {
+        if (restockPlans.length === 0) { 
+            alert('采购计划表为空，请先添加数据'); 
+            return; 
+        }
+        
+        var csvContent = "\uFEFFSKU,每日销量,总可用库存,物流方式,交货周期(天),目标备货天数,ROP警戒线,库存状态,建议采购量,预计到仓日\n";
+        
+        for (var i = 0; i < restockPlans.length; i++) {
+            var p = restockPlans[i];
+            csvContent += p.sku + ',' + p.daily + ',' + p.totalStock + ',' + p.transport + ',' + 
+                          p.leadtime + ',' + p.target + ',' + p.rop + ',' + p.status + ',' + 
+                          p.orderQty + ',' + p.arrivalDate + '\n';
+        }
+
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        var now = new Date();
+        var dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", "FBA_Inventory_Plan_" + dateStr + ".csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // ==========================================
+    // 模块 3：SOP 物流合规换算器
+    // ==========================================
+    function calculateSOP() {
+        var l = parseFloat(document.getElementById('sop-l').value) || 0;
+        var w = parseFloat(document.getElementById('sop-w').value) || 0;
+        var h = parseFloat(document.getElementById('sop-h').value) || 0;
+        var wt = parseFloat(document.getElementById('sop-weight').value) || 0;
+
+        var l_in = l / 2.54, w_in = w / 2.54, h_in = h / 2.54;
+        var volWeight = (l_in * w_in * h_in) / 139;
+        var chargeWeight = Math.max(volWeight, wt * 2.20462);
+
+        document.getElementById('res-vol-weight').innerText = volWeight.toFixed(2);
+        document.getElementById('res-charge-weight').innerText = chargeWeight.toFixed(2);
+    }
+
+    // ==========================================
+    // 模块 4：注册系统流程向导
+    // ==========================================
+    function switchRegStep(stepId, clickedElement) {
+        var contents = document.querySelectorAll('.reg-step-content');
+        for (var i = 0; i < contents.length; i++) {
+            contents[i].classList.remove('active');
+        }
+        var menus = document.querySelectorAll('.reg-menu li');
+        for (var j = 0; j < menus.length; j++) {
+            menus[j].classList.remove('active');
+        }
+        document.getElementById('reg-' + stepId).classList.add('active');
+        clickedElement.classList.add('active');
+    }
+
+    function calcRegProgress() {
+        var checkboxes = document.querySelectorAll('.reg-chk');
+        if (checkboxes.length === 0) return;
+
+        var checkedCount = 0;
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) checkedCount++;
+        }
+        
+        var percentage = Math.round((checkedCount / checkboxes.length) * 100);
+        
+        var pText = document.getElementById('reg-progress-text');
+        var pBar = document.getElementById('reg-progress-bar');
+        
+        if (pText && pBar) {
+            pText.innerText = percentage + '%';
+            pBar.style.width = percentage + '%';
+            
+            if (percentage === 100) {
+                pBar.style.background = 'var(--success-green)';
+                pText.style.color = 'var(--success-green)';
+            } else {
+                pBar.style.background = 'var(--amz-orange)';
+                pText.style.color = 'var(--amz-orange)';
+            }
+        }
+    }
+
+    // ==========================================
+    // 全局启动初始化
+    // ==========================================
+    window.onload = function() {
+        try { runCalc(); } catch(e) { console.error(e); }
+        try { renderCalcRecords(); } catch(e) { console.error(e); }
+        try { runRestock(); } catch(e) { console.error(e); }
+        try { calculateSOP(); } catch(e) { console.error(e); }
+        try { calcRegProgress(); } catch(e) { console.error(e); }
+    };
+</script>
+
+</body>
+</html>
