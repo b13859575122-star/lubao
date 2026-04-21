@@ -87,9 +87,9 @@
             padding: 10px 12px; 
             border: 1px solid var(--border-color); 
             border-radius: 6px; 
-            font-size: 16px; /* 防止 iOS 自动放大 */
+            font-size: 16px; 
             transition: border-color 0.2s; 
-            height: 44px; /* 触控最佳高度 */
+            height: 44px; 
         }
         input:focus, select:focus { outline: none; border-color: var(--accent-blue); }
 
@@ -107,6 +107,7 @@
         .res-box.primary { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); }
         .res-label { font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px; }
         .res-val { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+        .res-val-small { font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
         
         .alert-box { padding: 12px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; margin-top: 15px; display: none; }
         .alert-red { background: rgba(239, 68, 68, 0.1); color: var(--warning-red); border: 1px solid rgba(239, 68, 68, 0.3); }
@@ -139,9 +140,72 @@
         .alert-block h4 { color: var(--warning-red); margin-bottom: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
         .alert-block p { color: #7f1d1d; font-size: 0.85rem; line-height: 1.5; }
 
-        /* ========================================== */
-        /* 移动端深度优化适配 (Mobile View) */
-        /* ========================================== */
+        /* 常用工具卡片网格样式 */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+        }
+        .tool-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 18px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+        .tool-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .tool-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tool-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        .tool-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 12px;
+            align-self: flex-start;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .tool-badge.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--caution-yellow);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        .tool-badge.primary {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .doc-list { list-style: none; margin-top: 10px; }
+        .doc-list li { margin-bottom: 12px; padding-left: 15px; position: relative; }
+        .doc-list li::before { content: "•"; color: var(--amz-orange); position: absolute; left: 0; top: 0; font-size: 1.2rem; line-height: 1; }
+        .doc-list a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; line-height: 1.4; display: inline-block; transition: color 0.2s; }
+        .doc-list a:hover { color: var(--accent-blue); text-decoration: underline; }
+
+        /* 移动端深度优化适配 */
         @media (max-width: 800px) {
             .nav-header { 
                 flex-direction: column; 
@@ -155,22 +219,18 @@
                 padding-bottom: 5px; 
                 -webkit-overflow-scrolling: touch; 
             }
-            .nav-links::-webkit-scrollbar { display: none; } /* 隐藏滚动条 */
+            .nav-links::-webkit-scrollbar { display: none; }
             
             .container { padding: 0 10px; margin: 15px auto; }
             .card { padding: 15px; }
             
-            /* 取消分列，全部单列 */
             .grid-2, .grid-reg { grid-template-columns: 1fr; gap: 15px; }
             .input-grid { grid-template-columns: 1fr; }
+            .tools-grid { grid-template-columns: 1fr; } 
             
-            /* 测算长宽高的连体输入框优化 */
             #c_l, #c_w, #c_h { width: 100% !important; }
-            
-            /* 结果面板在手机端取消 fixed 定位 */
             .result-panel { position: relative; top: 0; }
 
-            /* 注册导航在手机端变横向滑动菜单 */
             .reg-menu { 
                 display: flex; 
                 overflow-x: auto; 
@@ -191,11 +251,17 @@
 <header class="nav-header">
     <div class="header-title">LAND LEOPARD <span style="color: var(--accent-blue)">DECISION SYSTEM</span></div>
     <nav class="nav-links">
-        <div class="nav-link active" onclick="switchView('calc', this, 'standard')">单品全链路利润测算</div>
-        <div class="nav-link" onclick="switchView('restock', this, 'standard')">FBA 智能补货计划</div>
-        <div class="nav-link" onclick="switchView('sop', this, 'standard')">尺寸与物流 SOP</div>
-        <div class="nav-link" onclick="switchView('reg', this, 'amz')">北美站注册与审查</div>
+        <div class="nav-link active" onclick="switchView('calc', this, 'standard')">单品利润测算</div>
+        <div class="nav-link" onclick="switchView('restock', this, 'standard')">智能补货计划</div>
+        <div class="nav-link" onclick="switchView('sop', this, 'standard')">尺寸、物流与仓储费</div>
+        <div class="nav-link" onclick="switchView('reg', this, 'amz')">注册与审查</div>
         <div class="nav-link" onclick="switchView('manual', this, 'standard')">运营资源手册</div>
+        <div class="nav-link" onclick="switchView('tools', this, 'standard')">跨境常用工具</div>
+        
+        <div class="nav-link" onclick="switchView('amazonhelp', this, 'amz')" style="color: var(--amz-orange); font-weight: 600;">
+            亚马逊官方指南库
+        </div>
+        
         <a href="https://alidocs.dingtalk.com/i/nodes/ydxXB52LJqAKvOZaHM47jopaJqjMp697" target="_blank" class="nav-link nav-link-external">
             开店注册流程 ↗
         </a>
@@ -211,7 +277,7 @@
                     <div class="card-title">测算参数输入面板</div>
                     <div class="card-subtitle" style="margin-top: 0;">一、基础与采购成本 (CNY/USD)</div>
                     <div class="input-grid">
-                        <div class="input-group"><label>产品型号</label><input type="text" id="c_model" value="Eagle Pro 2.0"></div>
+                        <div class="input-group"><label>产品型号</label><input type="text" id="c_model" value="金刚"></div>
                         <div class="input-group"><label>目标售价 (USD)</label><input type="number" id="c_price" value="299.99" step="0.01" oninput="runCalc()"></div>
                         <div class="input-group"><label>采购单价 (CNY)</label><input type="number" id="c_cost" value="450" step="1" oninput="runCalc()"></div>
                         <div class="input-group"><label>包装费 (CNY)</label><input type="number" id="c_pack" value="15" step="1" oninput="runCalc()"></div>
@@ -223,9 +289,9 @@
                         <div class="input-group">
                             <label>长x宽x高 (cm)</label>
                             <div style="display: flex; gap: 5px;">
-                                <input type="number" id="c_l" value="80" style="width: 33%" placeholder="长" oninput="runCalc()">
-                                <input type="number" id="c_w" value="50" style="width: 33%" placeholder="宽" oninput="runCalc()">
-                                <input type="number" id="c_h" value="30" style="width: 33%" placeholder="高" oninput="runCalc()">
+                                <input type="number" id="c_l" value="52" style="width: 33%" placeholder="长" oninput="runCalc()">
+                                <input type="number" id="c_w" value="27" style="width: 33%" placeholder="宽" oninput="runCalc()">
+                                <input type="number" id="c_h" value="74" style="width: 33%" placeholder="高" oninput="runCalc()">
                             </div>
                         </div>
                         <div class="input-group"><label>抛重系数</label>
@@ -235,7 +301,7 @@
                                 <option value="7000">7000 (海卡优惠)</option>
                             </select>
                         </div>
-                        <div class="input-group"><label>毛重 (kg)</label><input type="number" id="c_weight" value="9.5" step="0.1" oninput="runCalc()"></div>
+                        <div class="input-group"><label>毛重 (kg)</label><input type="number" id="c_weight" value="12.5" step="0.1" oninput="runCalc()"></div>
                         <div class="input-group"><label>头程单价 (USD/kg)</label><input type="number" id="c_freight" value="1.2" step="0.1" oninput="runCalc()"></div>
                         <div class="input-group"><label>关税税率</label><input type="number" id="c_tax" value="0.05" step="0.01" oninput="runCalc()"></div>
                     </div>
@@ -365,20 +431,90 @@
     </section>
 
     <section id="view-sop" class="view-content">
-        <div class="card">
-            <div class="card-title">体积与合规测算 (自动换算 cm/kg 至英寸/磅)</div>
-            <div class="input-grid">
-                <div class="input-group"><label>长度 L (cm)</label><input type="number" id="sop-l" placeholder="0" oninput="calculateSOP()"></div>
-                <div class="input-group"><label>宽度 W (cm)</label><input type="number" id="sop-w" placeholder="0" oninput="calculateSOP()"></div>
-                <div class="input-group"><label>高度 H (cm)</label><input type="number" id="sop-h" placeholder="0" oninput="calculateSOP()"></div>
-                <div class="input-group"><label>重量 Weight (kg)</label><input type="number" id="sop-weight" placeholder="0" oninput="calculateSOP()"></div>
+        <div class="grid-2">
+            <div>
+                <div class="card">
+                    <div class="card-title">1. 产品物理属性 (金刚)</div>
+                    <div class="input-grid">
+                        <div class="input-group"><label>包装长度 L (cm)</label><input type="number" id="sop-l" value="52" oninput="calculateSOP()"></div>
+                        <div class="input-group"><label>包装宽度 W (cm)</label><input type="number" id="sop-w" value="27" oninput="calculateSOP()"></div>
+                        <div class="input-group"><label>包装高度 H (cm)</label><input type="number" id="sop-h" value="74" oninput="calculateSOP()"></div>
+                        <div class="input-group"><label>含包装重量 (kg)</label><input type="number" id="sop-weight" value="12.5" oninput="calculateSOP()"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">2. FBA 仓储环境参数</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label>产品尺寸分段</label>
+                            <select id="sf_tier" onchange="calculateSOP()">
+                                <option value="oversize" selected>大件 (Oversize)</option>
+                                <option value="standard">标准尺寸 (Standard)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>当前所处月份</label>
+                            <select id="sf_season" onchange="calculateSOP()">
+                                <option value="offpeak" selected>淡季 (1月 - 9月)</option>
+                                <option value="peak">旺季 (10月 - 12月)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>月均在库数量 (件)</label>
+                            <input type="number" id="sf_avg_units" value="100" oninput="calculateSOP()">
+                        </div>
+                        <div class="input-group">
+                            <label>其中库龄超 30 天数量</label>
+                            <input type="number" id="sf_old_units" value="20" oninput="calculateSOP()">
+                        </div>
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label>仓储利用率 (Storage Utilization Ratio)</label>
+                            <select id="sf_ratio" onchange="calculateSOP()">
+                                <option value="tier1" selected>低于 22 周 (无附加费)</option>
+                                <option value="tier2">22 – 28 周</option>
+                                <option value="tier3">28 – 36 周</option>
+                                <option value="tier4">36 – 44 周</option>
+                                <option value="tier5">44 – 52 周</option>
+                                <option value="tier6">52 周以上</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="result-grid" style="margin-top: 20px;">
-                <div class="res-box"><span class="res-label">亚马逊抛重标准 (lb)</span><span class="res-val" id="res-vol-weight">0.00</span></div>
-                <div class="res-box primary"><span class="res-label">最终计费重量 (lb)</span><span class="res-val" id="res-charge-weight">0.00</span></div>
+
+            <div class="result-panel">
+                <div class="card">
+                    <div class="card-title">物流标准转化结果</div>
+                    <div class="result-grid" style="margin-bottom: 10px;">
+                        <div class="res-box">
+                            <span class="res-label">单件体积 (立方英尺/CuFt)</span>
+                            <span class="res-val-small" id="res-cubic-feet">0.00</span>
+                        </div>
+                        <div class="res-box">
+                            <span class="res-label">最终计费重量 (磅/lb)</span>
+                            <span class="res-val-small" id="res-charge-weight">0.00</span>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">*亚马逊仓储费基于 CuFt (立方英尺) 精确计算</p>
+
+                    <div class="card-title" style="border-left-color: var(--warning-red);">FBA 月度仓储费预估 (USD)</div>
+                    <div class="result-grid">
+                        <div class="res-box">
+                            <span class="res-label">基础仓储费</span>
+                            <span class="res-val-small" id="r_sf_base">$0.00</span>
+                        </div>
+                        <div class="res-box" style="background: rgba(239,68,68,0.05);">
+                            <span class="res-label" style="color: var(--warning-red);">利用率附加费</span>
+                            <span class="res-val-small" id="r_sf_surcharge" style="color: var(--warning-red);">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="res-box primary" style="margin-top: 15px;">
+                        <span class="res-label">总计月度仓储费 (Total Monthly Fee)</span>
+                        <span class="res-val" id="r_sf_total" style="color: var(--accent-blue);">$0.00</span>
+                    </div>
+                </div>
             </div>
-            <div id="sop-alert-size" style="display:none; color:var(--warning-red); margin-top:10px; font-weight:bold;"></div>
-            <div id="sop-alert-weight" style="display:none; color:var(--warning-red); margin-top:5px; font-weight:bold;"></div>
         </div>
     </section>
 
@@ -451,6 +587,204 @@
                     <tr><td>Google Trends (趋势选品)</td><td><a href="https://www.google.com/trends/" target="_blank">https://www.google.com/trends/</a></td></tr>
                 </tbody></table>
             </div>
+        </div>
+    </section>
+
+    <section id="view-tools" class="view-content">
+        <div class="card">
+            <div class="card-title">跨境支付与收款工具</div>
+            <div class="tools-grid">
+                <a href="https://global.tenpay.com/" target="_blank" class="tool-card">
+                    <div class="tool-title">智汇鹅 (腾讯出品) <span>↗</span></div>
+                    <div class="tool-desc">腾讯推出的企业跨境支付平台，支持 Amazon、Mercado Libre 等主流电商平台收款。</div>
+                    <div class="tool-badge">费率 0.3% 封顶</div>
+                </a>
+                <a href="https://www.sunrate.com/" target="_blank" class="tool-card">
+                    <div class="tool-title">寻汇 SUNRATE <span>↗</span></div>
+                    <div class="tool-desc">直连全球主流电商平台与独立站，助力开拓国际市场，提供高效透明的资金收付服务。</div>
+                    <div class="tool-badge">费率优惠 0.1%</div>
+                </a>
+                <a href="https://global.lianlianpay.com/" target="_blank" class="tool-card">
+                    <div class="tool-title">连连国际 <span>↗</span></div>
+                    <div class="tool-desc">港股上市公司旗下品牌，着力提供全方位的支付解决方案与合规保障。</div>
+                    <div class="tool-badge">费率 0.2% 封顶</div>
+                </a>
+                <a href="https://www.worldfirst.com.cn/" target="_blank" class="tool-card">
+                    <div class="tool-title">万里汇 (WorldFirst) <span>↗</span></div>
+                    <div class="tool-desc">蚂蚁集团旗下品牌，主营跨境电商和外贸 B2B 资金收付兑服务。</div>
+                    <div class="tool-badge">费率 0.3% 封顶</div>
+                </a>
+                <a href="https://www.airwallex.com/" target="_blank" class="tool-card">
+                    <div class="tool-title">空中云汇 (Airwallex) <span>↗</span></div>
+                    <div class="tool-desc">总部位于新加坡，专注为现代企业打造全球银行业新生态，金融科技平台。</div>
+                    <div class="tool-badge">费率低至 0.05%</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">合规信息与全链路流程</div>
+            <div class="tools-grid">
+                <a href="https://gitmind.cn/app/docs/mrdqiana" target="_blank" class="tool-card" style="border-color: var(--accent-blue);">
+                    <div class="tool-title">跨境运营全链路流程图 <span>↗</span></div>
+                    <div class="tool-desc">包含开店注册、产品调研、物流发货、推广运营及售后维权的全链路标准作业 SOP 流程图。</div>
+                    <div class="tool-badge primary">核心业务逻辑</div>
+                </a>
+                <a href="https://sell.amazon.com/programs/service-provider-network" target="_blank" class="tool-card">
+                    <div class="tool-title">亚马逊 SPN 服务商 <span>↗</span></div>
+                    <div class="tool-desc">官方认证的服务商网络，涵盖物流、税务、合规等板块，数据可靠度高于外部平台。</div>
+                    <div class="tool-badge warning">官方合规数据源</div>
+                </a>
+                <a href="https://tmsearch.uspto.gov/" target="_blank" class="tool-card">
+                    <div class="tool-title">知识产权查询 (USPTO) <span>↗</span></div>
+                    <div class="tool-desc">美国专利商标局官方入口，用于注册前的商标重名排查与侵权规避分析。</div>
+                    <div class="tool-badge warning">IP 合规审查</div>
+                </a>
+                <a href="https://branddb.wipo.int/" target="_blank" class="tool-card">
+                    <div class="tool-title">WIPO 全球品牌数据库 <span>↗</span></div>
+                    <div class="tool-desc">世界知识产权组织数据库，支持全球多国家和地区的商标综合查重分析。</div>
+                    <div class="tool-badge warning">全球 IP 数据源</div>
+                </a>
+                <a href="javascript:void(0);" onclick="switchView('calc', document.querySelector('.nav-link'), 'standard')" class="tool-card">
+                    <div class="tool-title">FBA 全链路利润计算器 <span>→</span></div>
+                    <div class="tool-desc">本系统内置工具：支持头程、尾程、仓储、营销及退款率动态测算，脱离表格限制。</div>
+                    <div class="tool-badge">本地原生模块</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">视觉设计与效率运营</div>
+            <div class="tools-grid">
+                <a href="https://www.linkfox.com/" target="_blank" class="tool-card">
+                    <div class="tool-title">LinkFox AI <span>↗</span></div>
+                    <div class="tool-desc">专为跨境电商提供的 AI 工作流工具，用于竞品分析与文本自动化处理。</div>
+                    <div class="tool-badge">运营效率</div>
+                </a>
+                <a href="https://www.pexels.com/" target="_blank" class="tool-card">
+                    <div class="tool-title">Pexels 无版权图库 <span>↗</span></div>
+                    <div class="tool-desc">国际主流高清无版权图库，用于 A+ 页面场景合成及社媒引流素材获取。</div>
+                    <div class="tool-badge">视觉素材库</div>
+                </a>
+                <a href="https://kj.1688.com/" target="_blank" class="tool-card">
+                    <div class="tool-title">1688 跨境专供源 <span>↗</span></div>
+                    <div class="tool-desc">B2B 采购寻源系统，比对成本价与大件抛重数据时的首选基准数据库。</div>
+                    <div class="tool-badge">供应链数据源</div>
+                </a>
+                <a href="https://chat.deepseek.com/" target="_blank" class="tool-card">
+                    <div class="tool-title">Deepseek AI 大模型 <span>↗</span></div>
+                    <div class="tool-desc">逻辑强悍的文本生成与数据分析模型，用于五点描述（Bullet Points）精构及语法优化。</div>
+                    <div class="tool-badge">文本与逻辑引擎</div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-amazonhelp" class="view-content">
+        <div class="card" style="border-left: 4px solid var(--amz-orange);">
+            <div style="margin-bottom: 20px;">
+                <h2 style="color: var(--amz-orange); margin-bottom: 8px;">亚马逊卖家官方指南库</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">数据直接同步自 Seller Central (已为您智能过滤 B2B、绩效监控及其他无关干扰版块)</p>
+            </div>
+        </div>
+
+        <div class="tools-grid">
+            
+            <div class="card doc-card" style="margin-bottom: 0;">
+                <div class="card-title doc-card-title">账户设置与验证</div>
+                <ul class="doc-list">
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200225690" target="_blank">在亚马逊上销售指南</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201200780" target="_blank">卖家身份、地址和企业验证</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G202110760" target="_blank">两步验证 (Two-Step Verification) 设置</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200252870" target="_blank">管理账户设置</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G851" target="_blank">自发货物流政策</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G191" target="_blank">卖家账户的银行及信用卡信息更新</a></li>
+                </ul>
+            </div>
+
+            <div class="card doc-card" style="margin-bottom: 0;">
+                <div class="card-title doc-card-title">政策、协议与准则</div>
+                <ul class="doc-list">
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G1791" target="_blank">亚马逊服务商业解决方案协议</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G521" target="_blank">各项计划政策 (Program Policies)</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200386250" target="_blank">禁止的卖家活动和行为 (防关联与欺诈)</a></li>
+                </ul>
+            </div>
+
+            <div class="card doc-card" style="margin-bottom: 0;">
+                <div class="card-title doc-card-title">订单管理流程</div>
+                <ul class="doc-list">
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200494050" target="_blank">订单处理流程规范</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201083930" target="_blank">使用“买家与卖家消息”与买家沟通</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200197930" target="_blank">管理订单常见问题 (FAQ)</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200508590" target="_blank">FBM 自发货订单报告下载</a></li>
+                </ul>
+            </div>
+
+            <div class="card doc-card" style="margin-bottom: 0;">
+                <div class="card-title doc-card-title" style="border-left-color: var(--warning-red);">退货与 A-to-z 索赔</div>
+                <ul class="doc-list">
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200708210" target="_blank">管理自发货退货流程</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200198010" target="_blank">针对自发货订单发放退款与补偿</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G27951" target="_blank">亚马逊商城交易保障索赔 (A-to-z Guarantee)</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201000100" target="_blank">订单取消政策与操作</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G521" target="_blank">中国大陆卖家商业责任保险合规</a></li>
+                </ul>
+            </div>
+
+            <div class="card doc-card" style="margin-bottom: 0;">
+                <div class="card-title doc-card-title">库存管理与定价</div>
+                <ul class="doc-list">
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201465620" target="_blank">单个商品上架与管理</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G581" target="_blank">批量上传和管理报价</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200466020" target="_blank">商品变体 (Variations) 创建指南</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201088280" target="_blank">定价规则与参考</a></li>
+                </ul>
+            </div>
+
+            <div class="card doc-card" style="margin-bottom: 0;">
+                <div class="card-title doc-card-title">Listing 与合规准则</div>
+                <ul class="doc-list">
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200390640" target="_blank">产品标题要求和准则</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200390640" target="_blank">五点描述 (Bullet points) 规范</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G1881" target="_blank">产品主图与辅图指南</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201047930" target="_blank">SEO 搜索关键词优化</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G202102950" target="_blank">A+ Content (图文版品牌描述) 制作</a></li>
+                </ul>
+            </div>
+
+            <div class="card doc-card" style="margin-bottom: 0;">
+                <div class="card-title doc-card-title" style="border-left-color: var(--success-green);">提高销量工具</div>
+                <ul class="doc-list">
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G202029560" target="_blank">亚马逊促销设置 (Promotions & Coupons)</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201186860" target="_blank">秒杀活动 (Deals) 提报政策</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201990810" target="_blank">Amazon Vine 评论者计划</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G202112100" target="_blank">品牌推荐奖金 (Brand Referral Bonus)</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G12345" target="_blank">A/B 测试管理 (Manage Your Experiments)</a></li>
+                </ul>
+            </div>
+
+            <div class="card doc-card" style="margin-bottom: 0;">
+                <div class="card-title doc-card-title" style="border-left-color: var(--amz-orange);">FBA 发货与仓储</div>
+                <ul class="doc-list">
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201074400" target="_blank">发送产品至亚马逊仓库 (Ship to Amazon)</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201030350" target="_blank">FBA 政策和危险品限制要求</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201074400" target="_blank">FBA 功能、服务与各项费率</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200146920" target="_blank">多渠道配送 (MCF)</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G202183240" target="_blank">AWD (亚马逊仓储分拨服务) 入门</a></li>
+                </ul>
+            </div>
+            
+            <div class="card doc-card" style="margin-bottom: 0;">
+                <div class="card-title doc-card-title">资金与收款 (Payments)</div>
+                <ul class="doc-list">
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200220600" target="_blank">支付与结算常见问题 (Payments FAQ)</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201484080" target="_blank">可接受的银行账户和支付服务商 (PSP)</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G201074400" target="_blank">快速提款 (Express Payout) 政策</a></li>
+                    <li><a href="https://sellercentral.amazon.com/help/hub/reference/external/G200424310" target="_blank">卖家资金预留政策与放款条件</a></li>
+                </ul>
+            </div>
+
         </div>
     </section>
 
@@ -775,20 +1109,86 @@
     }
 
     // ==========================================
-    // 模块 3：SOP 物流合规换算器
+    // 模块 3：尺寸物流及 FBA 月度仓储费计算引擎
     // ==========================================
     function calculateSOP() {
-        var l = parseFloat(document.getElementById('sop-l').value) || 0;
-        var w = parseFloat(document.getElementById('sop-w').value) || 0;
-        var h = parseFloat(document.getElementById('sop-h').value) || 0;
-        var wt = parseFloat(document.getElementById('sop-weight').value) || 0;
+        var l_cm = parseFloat(document.getElementById('sop-l').value) || 0;
+        var w_cm = parseFloat(document.getElementById('sop-w').value) || 0;
+        var h_cm = parseFloat(document.getElementById('sop-h').value) || 0;
+        var wt_kg = parseFloat(document.getElementById('sop-weight').value) || 0;
 
-        var l_in = l / 2.54, w_in = w / 2.54, h_in = h / 2.54;
-        var volWeight = (l_in * w_in * h_in) / 139;
-        var chargeWeight = Math.max(volWeight, wt * 2.20462);
+        // 1. 体积重与计费重转换
+        var l_in = l_cm / 2.54;
+        var w_in = w_cm / 2.54;
+        var h_in = h_cm / 2.54;
+        var volWeight_lb = (l_in * w_in * h_in) / 139;
+        var actualWeight_lb = wt_kg * 2.20462;
+        var chargeWeight_lb = Math.max(volWeight_lb, actualWeight_lb);
 
-        document.getElementById('res-vol-weight').innerText = volWeight.toFixed(2);
-        document.getElementById('res-charge-weight').innerText = chargeWeight.toFixed(2);
+        // 2. 计算立方英尺 (Cubic Feet)
+        var volume_cuft = (l_in * w_in * h_in) / 1728;
+        
+        document.getElementById('res-cubic-feet').innerText = volume_cuft.toFixed(3);
+        document.getElementById('res-charge-weight').innerText = chargeWeight_lb.toFixed(2);
+
+        // 3. FBA 月度仓储费测算
+        var tier = document.getElementById('sf_tier').value; // 'standard' or 'oversize'
+        var season = document.getElementById('sf_season').value; // 'offpeak' or 'peak'
+        var avgUnits = parseFloat(document.getElementById('sf_avg_units').value) || 0;
+        var oldUnits = parseFloat(document.getElementById('sf_old_units').value) || 0;
+        var ratio = document.getElementById('sf_ratio').value;
+
+        // 确定基础费率
+        var baseRate = 0;
+        if (season === 'offpeak') {
+            baseRate = (tier === 'standard') ? 0.78 : 0.56;
+        } else {
+            baseRate = (tier === 'standard') ? 2.40 : 1.40;
+        }
+
+        // 确定附加费率 (仅对超出30天的库存收取)
+        var surchargeRate = 0;
+        if (ratio !== 'tier1') {
+            if (season === 'offpeak') {
+                if (tier === 'standard') {
+                    if (ratio === 'tier2') surchargeRate = 0.44;
+                    else if (ratio === 'tier3') surchargeRate = 0.76;
+                    else if (ratio === 'tier4') surchargeRate = 1.16;
+                    else if (ratio === 'tier5') surchargeRate = 1.58;
+                    else if (ratio === 'tier6') surchargeRate = 1.88;
+                } else { // oversize
+                    if (ratio === 'tier2') surchargeRate = 0.23;
+                    else if (ratio === 'tier3') surchargeRate = 0.46;
+                    else if (ratio === 'tier4') surchargeRate = 0.63;
+                    else if (ratio === 'tier5') surchargeRate = 0.76;
+                    else if (ratio === 'tier6') surchargeRate = 1.26;
+                }
+            } else { // peak
+                if (tier === 'standard') {
+                    if (ratio === 'tier2') surchargeRate = 0.44;
+                    else if (ratio === 'tier3') surchargeRate = 0.76;
+                    else if (ratio === 'tier4') surchargeRate = 1.16;
+                    else if (ratio === 'tier5') surchargeRate = 1.58;
+                    else if (ratio === 'tier6') surchargeRate = 1.88;
+                } else { // oversize
+                    if (ratio === 'tier2') surchargeRate = 0.23;
+                    else if (ratio === 'tier3') surchargeRate = 0.46;
+                    else if (ratio === 'tier4') surchargeRate = 0.63;
+                    else if (ratio === 'tier5') surchargeRate = 0.76;
+                    else if (ratio === 'tier6') surchargeRate = 1.26;
+                }
+            }
+        }
+
+        // 计算各项费用
+        var baseFee = avgUnits * volume_cuft * baseRate;
+        var surchargeFee = oldUnits * volume_cuft * surchargeRate;
+        var totalFee = baseFee + surchargeFee;
+
+        // 渲染到前端
+        document.getElementById('r_sf_base').innerText = '$' + baseFee.toFixed(2);
+        document.getElementById('r_sf_surcharge').innerText = '$' + surchargeFee.toFixed(2);
+        document.getElementById('r_sf_total').innerText = '$' + totalFee.toFixed(2);
     }
 
     // ==========================================
